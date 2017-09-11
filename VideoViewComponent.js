@@ -15,14 +15,14 @@ class VideoViewComponent extends Component {
         return <VideoView
             {...this.props}
             onChange={(event) => {
-                this.props.onDelete(event);
+                this.props.onTouch(event);
             }}/>;
     }
 }
 
 VideoViewComponent.propTypes = {
     array: PropTypes.arrayOf(PropTypes.string),
-    onDelete: PropTypes.func,
+    onTouch: PropTypes.func,
     ...View.propTypes, // 包含默认的View的属性
 };
 

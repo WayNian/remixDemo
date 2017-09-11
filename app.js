@@ -6,18 +6,9 @@
 
 import React, {Component} from "react";
 import {View, Dimensions} from "react-native";
-import VideoView from "./VideoView";
+import VideoView from "./VideoViewComponent";
 
 export default class app extends Component {
-
-    constructor() {
-        super();
-        this._onChange = this._onChange.bind(this);
-    }
-
-    _onChange(event: Event) {
-        alert(event.map.language)
-    }
 
     render() {
         return (
@@ -27,10 +18,12 @@ export default class app extends Component {
                         width: Dimensions.get('window').width,
                         height: Dimensions.get('window').height
                     }}
-                    onChange={this._onChange()}
+                    onChange={(event)=>{
+                        alert(event.nativeEvent.language)
+                    }}
                     source={
                         {
-                            url: 'http://v4.music.126.net/20170909051955/bd50b10b0c6e3f47ff16c5d281d9de7e/web/cloudmusic/MyE3MTUhMiU1MSAxJDAgMA==/mv/290244/3659fac8c8faa7b20cf483bd50f1bc57.mp4',
+                            url: 'http://v4.music.126.net/20170911213314/5a5a9861c529453099c21c7a33148985/web/cloudmusic/ICAgMCYgMiIgIDYgMTBhNA==/mv/5621379/04bafd00fcb328b4f812516a11f92e75.mp4',
                             headers: {
                                 'refer': 'myRefer'
                             }

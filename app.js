@@ -7,6 +7,7 @@
 import React, {Component} from "react";
 import {View, Dimensions} from "react-native";
 import VideoView from "./VideoViewComponent";
+import Toast from './ToastTest'
 
 export default class app extends Component {
 
@@ -18,8 +19,8 @@ export default class app extends Component {
                         width: Dimensions.get('window').width,
                         height: Dimensions.get('window').height
                     }}
-                    onChange={(event)=>{
-                        alert(event.nativeEvent.language)
+                    onTouch={(event)=>{
+                        Toast.show(event.nativeEvent.language,Toast.SHORT)
                     }}
                     source={
                         {

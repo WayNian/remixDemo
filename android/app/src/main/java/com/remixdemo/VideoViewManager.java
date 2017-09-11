@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.VideoView;
 
 import com.facebook.common.logging.FLog;
@@ -53,6 +54,8 @@ public class VideoViewManager extends SimpleViewManager<VideoView> {
         }
         presentation.show();
         final VideoView video = presentation.videoView;
+        ((ViewGroup)video.getParent()).removeView(video);
+
         video.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -60,7 +63,7 @@ public class VideoViewManager extends SimpleViewManager<VideoView> {
                     String language = presentationDisplays.length + "";
                     WritableMap map = Arguments.createMap();
                     map.putString("language", language);
-                    // "topChange"事件在JS端映射到"onChange"，参考UIManagerModuleConstants.java
+                    // "topChange"事件在JS端映射到"onChange"
                     reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(video.getId()
                             , "topChange", map);
                     return true;

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -41,9 +42,17 @@ public class VideoViewManager extends SimpleViewManager<VideoView> {
 
     @Override
     protected VideoView createViewInstance(final ThemedReactContext reactContext) {
-        final VideoView video = new VideoView(reactContext);
+//        final VideoView video = new VideoView(reactContext);
         DisplayManager displayManager = (DisplayManager) reactContext.getSystemService(Context.DISPLAY_SERVICE);
         presentationDisplays = displayManager.getDisplays();
+
+        if (presentationDisplays.length > 1) {
+            presentation = new DifferentDisplay(reactContext, presentationDisplays[1]);
+        } else {
+            presentation = new DifferentDisplay(reactContext, presentationDisplays[0]);
+        }
+        presentation.show();
+        final VideoView video = presentation.videoView;
         video.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {

@@ -20,6 +20,7 @@ import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
+import com.remixdemo.media.IjkVideoView;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ import javax.annotation.Nullable;
  * Created by waynian on 2017/9/8.
  */
 
-public class VideoViewManager extends SimpleViewManager<VideoView> {
+public class VideoViewManager extends SimpleViewManager<IjkVideoView> {
 
     private DifferentDisplay presentation;
     Display[] presentationDisplays;
@@ -42,7 +43,7 @@ public class VideoViewManager extends SimpleViewManager<VideoView> {
     }
 
     @Override
-    protected VideoView createViewInstance(final ThemedReactContext reactContext) {
+    protected IjkVideoView createViewInstance(final ThemedReactContext reactContext) {
 //        final VideoView video = new VideoView(reactContext);
         DisplayManager displayManager = (DisplayManager) reactContext.getSystemService(Context.DISPLAY_SERVICE);
         presentationDisplays = displayManager.getDisplays();
@@ -53,9 +54,8 @@ public class VideoViewManager extends SimpleViewManager<VideoView> {
             presentation = new DifferentDisplay(reactContext, presentationDisplays[0]);
         }
         presentation.show();
-        final VideoView video = presentation.videoView;
+        final IjkVideoView video = presentation.videoView;
         ((ViewGroup)video.getParent()).removeView(video);
-
         video.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -77,13 +77,13 @@ public class VideoViewManager extends SimpleViewManager<VideoView> {
     }
 
     @Override
-    public void onDropViewInstance(VideoView view) {
+    public void onDropViewInstance(IjkVideoView view) {
         super.onDropViewInstance(view);
         view.stopPlayback();
     }
 
     @ReactProp(name = "source")
-    public void setSource(VideoView videoView, @Nullable ReadableMap source) {
+    public void setSource(IjkVideoView videoView, @Nullable ReadableMap source) {
 
         if (source != null) {
             if (source.hasKey("url")) {

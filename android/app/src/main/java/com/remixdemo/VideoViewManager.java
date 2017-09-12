@@ -13,9 +13,11 @@ import android.widget.VideoView;
 
 import com.facebook.common.logging.FLog;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
@@ -34,8 +36,15 @@ import javax.annotation.Nullable;
 
 public class VideoViewManager extends SimpleViewManager<IjkVideoView> {
 
+    private static final String TAG = "SimpleViewManager";
     private DifferentDisplay presentation;
     Display[] presentationDisplays;
+    IjkVideoView video;
+    IjkVideoView videoView2;
+    String urlRN;
+
+    private static final int COMMAND_PAUSE_ID = 1;
+    private static final String COMMAND_PAUSE_NAME = "pause";
 
     @Override
     public String getName() {
@@ -54,8 +63,9 @@ public class VideoViewManager extends SimpleViewManager<IjkVideoView> {
             presentation = new DifferentDisplay(reactContext, presentationDisplays[0]);
         }
         presentation.show();
-        final IjkVideoView video = presentation.videoView;
-        ((ViewGroup)video.getParent()).removeView(video);
+        video = presentation.videoView;
+        videoView2 = presentation.videoView2;
+        ((ViewGroup) video.getParent()).removeView(video);
         video.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -76,42 +86,50 @@ public class VideoViewManager extends SimpleViewManager<IjkVideoView> {
         return video;
     }
 
+    @Nullable
+    @Override
+    public Map<String, Integer> getCommandsMap() {
+        Log.d(TAG, "getCommandsMap: 执行了");
+        return MapBuilder.of(
+                COMMAND_PAUSE_NAME, COMMAND_PAUSE_ID
+        );
+    }
+
+    @Override
+    public void receiveCommand(IjkVideoView root, int commandId, @Nullable ReadableArray args) {
+        switch (commandId) {
+            case COMMAND_PAUSE_ID:
+                Log.d(TAG, "receiveCommand: 执行了"  + urlRN);
+                videoView2.setVideoURI(Uri.parse(urlRN));
+                videoView2.start();
+                video.pause();
+                break;
+            default:
+                break;
+        }
+    }
+
     @Override
     public void onDropViewInstance(IjkVideoView view) {
         super.onDropViewInstance(view);
         view.stopPlayback();
     }
 
-    @ReactProp(name = "source")
-    public void setSource(IjkVideoView videoView, @Nullable ReadableMap source) {
-
-        if (source != null) {
-            if (source.hasKey("url")) {
-                String url = source.getString("url");
-                FLog.e(VideoViewManager.class, "url = " + url);
-                HashMap<String, String> headerMap = new HashMap<>();
-                if (source.hasKey("headers")) {
-                    ReadableMap headers = source.getMap("headers");
-                    ReadableMapKeySetIterator iter = headers.keySetIterator();
-                    while (iter.hasNextKey()) {
-                        String key = iter.nextKey();
-                        String value = headers.getString(key);
-                        FLog.e(VideoViewManager.class, key + " = " + value);
-                        headerMap.put(key, value);
-                    }
+    @ReactProp(name = "url")
+    public void setSource(IjkVideoView videoView, @Nullable String url) {
+        if (url != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                videoView.setVideoURI(Uri.parse(url));
+                urlRN = url;
+            } else {
+                try {
+                    Method setVideoURIMethod = videoView.getClass().getMethod("setVideoURI", Uri.class, Map.class);
+                    setVideoURIMethod.invoke(videoView, Uri.parse(url));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    videoView.setVideoURI(Uri.parse(url), headerMap);
-                } else {
-                    try {
-                        Method setVideoURIMethod = videoView.getClass().getMethod("setVideoURI", Uri.class, Map.class);
-                        setVideoURIMethod.invoke(videoView, Uri.parse(url), headerMap);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                videoView.start();
             }
+            videoView.start();
         }
     }
 

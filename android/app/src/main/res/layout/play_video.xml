@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rn_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#299361"
@@ -8,23 +9,8 @@
     <com.remixdemo.media.IjkVideoView
         android:id="@+id/video_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></com.remixdemo.media.IjkVideoView>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="开始" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="暂停" />
-
-    <com.remixdemo.media.IjkVideoView
-        android:id="@+id/video_view2"
-        android:layout_width="500dp"
-        android:layout_height="500dp">
+        android:layout_height="match_parent">
 
     </com.remixdemo.media.IjkVideoView>
 
-</LinearLayout>
+</RelativeLayout>

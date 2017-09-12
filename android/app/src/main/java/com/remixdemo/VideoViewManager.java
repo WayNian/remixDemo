@@ -9,6 +9,7 @@ import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.VideoView;
 
 import com.facebook.common.logging.FLog;
@@ -30,30 +31,33 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import tv.danmaku.ijk.media.player.IMediaPlayer;
+
 /**
  * Created by waynian on 2017/9/8.
  */
 
-public class VideoViewManager extends SimpleViewManager<IjkVideoView> {
+public class VideoViewManager extends SimpleViewManager<LinearLayout> {
 
     private static final String TAG = "SimpleViewManager";
     private DifferentDisplay presentation;
-    Display[] presentationDisplays;
-    IjkVideoView video;
-    IjkVideoView videoView2;
-    String urlRN;
+    private Display[] presentationDisplays;
+    private IjkVideoView videoView;
 
-    private static final int COMMAND_PAUSE_ID = 1;
+    private static final int COMMAND_START_ID = 1;
+    private static final String COMMAND_START_NAME = "start";
+
+    private static final int COMMAND_PAUSE_ID = 2;
     private static final String COMMAND_PAUSE_NAME = "pause";
 
     @Override
     public String getName() {
-        return "VideoView";
+        return "LinearLayout";
     }
 
     @Override
-    protected IjkVideoView createViewInstance(final ThemedReactContext reactContext) {
-//        final VideoView video = new VideoView(reactContext);
+    protected LinearLayout createViewInstance(final ThemedReactContext reactContext) {
+        final LinearLayout linearLayout = new LinearLayout(reactContext);
         DisplayManager displayManager = (DisplayManager) reactContext.getSystemService(Context.DISPLAY_SERVICE);
         presentationDisplays = displayManager.getDisplays();
 
@@ -63,46 +67,49 @@ public class VideoViewManager extends SimpleViewManager<IjkVideoView> {
             presentation = new DifferentDisplay(reactContext, presentationDisplays[0]);
         }
         presentation.show();
-        video = presentation.videoView;
-        videoView2 = presentation.videoView2;
-        ((ViewGroup) video.getParent()).removeView(video);
-        video.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    String language = presentationDisplays.length + "";
-                    WritableMap map = Arguments.createMap();
-                    map.putString("language", language);
-                    // "topChange"事件在JS端映射到"onChange"
-                    reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(video.getId()
-                            , "topChange", map);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
-
-        return video;
+        videoView = presentation.videoView;
+//        rn_layout = presentation.rn_layout;
+//        ((ViewGroup) linearLayout.getParent()).removeView(linearLayout);
+//        videoView2.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//                    String language = presentationDisplays.length + "";
+//                    WritableMap map = Arguments.createMap();
+//                    map.putString("language", language);
+//                    // "topChange"事件在JS端映射到"onChange"
+//                    reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(video.getId()
+//                            , "topChange", map);
+//                    return true;
+//                } else {
+//                    return false;
+//                }
+//            }
+//        });
+        return linearLayout;
     }
 
     @Nullable
     @Override
     public Map<String, Integer> getCommandsMap() {
-        Log.d(TAG, "getCommandsMap: 执行了");
         return MapBuilder.of(
-                COMMAND_PAUSE_NAME, COMMAND_PAUSE_ID
+                COMMAND_PAUSE_NAME, COMMAND_PAUSE_ID,
+                COMMAND_START_NAME, COMMAND_START_ID
         );
     }
 
     @Override
-    public void receiveCommand(IjkVideoView root, int commandId, @Nullable ReadableArray args) {
+    public void receiveCommand(LinearLayout linearLayout, int commandId, @Nullable ReadableArray args) {
         switch (commandId) {
+            case COMMAND_START_ID:
+                if (!videoView.isPlaying()) {
+                    videoView.start();
+                }
+                break;
             case COMMAND_PAUSE_ID:
-                Log.d(TAG, "receiveCommand: 执行了"  + urlRN);
-                videoView2.setVideoURI(Uri.parse(urlRN));
-                videoView2.start();
-                video.pause();
+                if (videoView.isPlaying()) {
+                    videoView.pause();
+                }
                 break;
             default:
                 break;
@@ -110,28 +117,46 @@ public class VideoViewManager extends SimpleViewManager<IjkVideoView> {
     }
 
     @Override
-    public void onDropViewInstance(IjkVideoView view) {
-        super.onDropViewInstance(view);
-        view.stopPlayback();
+    public void onDropViewInstance(LinearLayout linearLayout) {
+        super.onDropViewInstance(linearLayout);
+        videoView.stopPlayback();
     }
 
+    //接受ReactNative 组件传递过来的参数
     @ReactProp(name = "url")
-    public void setSource(IjkVideoView videoView, @Nullable String url) {
+    public void setSource(LinearLayout linearLayout, @Nullable String url) {
         if (url != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                videoView.setVideoURI(Uri.parse(url));
-                urlRN = url;
-            } else {
-                try {
-                    Method setVideoURIMethod = videoView.getClass().getMethod("setVideoURI", Uri.class, Map.class);
-                    setVideoURIMethod.invoke(videoView, Uri.parse(url));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+            videoView.setVideoURI(Uri.parse(url));
             videoView.start();
+            videoView.setOnPreparedListener(new MyOnPreparedListener());
+            videoView.setOnCompletionListener(new MyOnCompletionListener());
+            videoView.setOnErrorListener(new MyOnOnErrorListener());
+
         }
     }
 
 
+    //播放准备
+    class MyOnPreparedListener implements IMediaPlayer.OnPreparedListener {
+        @Override
+        public void onPrepared(IMediaPlayer iMediaPlayer) {
+
+        }
+    }
+
+    //播放完成
+    class MyOnCompletionListener implements IMediaPlayer.OnCompletionListener {
+        @Override
+        public void onCompletion(IMediaPlayer iMediaPlayer) {
+
+        }
+    }
+
+    //播放结束
+    class MyOnOnErrorListener implements IMediaPlayer.OnErrorListener {
+        @Override
+        public boolean onError(IMediaPlayer iMediaPlayer, int i, int i1) {
+            return false;
+        }
+    }
 }

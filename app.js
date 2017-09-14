@@ -28,7 +28,6 @@ export default class app extends Component {
                         width: 0,
                         height: 0
                     }}
-
                     //测试地址,已加密的视频
                     url={'http://192.168.1.199:8000/fadeEncrypt.mp4'}
                 />

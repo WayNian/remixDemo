@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.VideoView;
 
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.facebook.common.logging.FLog;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray;
@@ -44,6 +45,8 @@ public class VideoViewManager extends SimpleViewManager<LinearLayout> {
     private Display[] presentationDisplays;
     private IjkVideoView videoView;
 
+    private Context context;
+
     private static final int COMMAND_START_ID = 1;
     private static final String COMMAND_START_NAME = "start";
 
@@ -57,6 +60,7 @@ public class VideoViewManager extends SimpleViewManager<LinearLayout> {
 
     @Override
     protected LinearLayout createViewInstance(final ThemedReactContext reactContext) {
+        context = reactContext;
         final LinearLayout linearLayout = new LinearLayout(reactContext);
         DisplayManager displayManager = (DisplayManager) reactContext.getSystemService(Context.DISPLAY_SERVICE);
         presentationDisplays = displayManager.getDisplays();
@@ -68,24 +72,6 @@ public class VideoViewManager extends SimpleViewManager<LinearLayout> {
         }
         presentation.show();
         videoView = presentation.videoView;
-//        rn_layout = presentation.rn_layout;
-//        ((ViewGroup) linearLayout.getParent()).removeView(linearLayout);
-//        videoView2.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-//                    String language = presentationDisplays.length + "";
-//                    WritableMap map = Arguments.createMap();
-//                    map.putString("language", language);
-//                    // "topChange"事件在JS端映射到"onChange"
-//                    reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(video.getId()
-//                            , "topChange", map);
-//                    return true;
-//                } else {
-//                    return false;
-//                }
-//            }
-//        });
         return linearLayout;
     }
 
@@ -126,37 +112,11 @@ public class VideoViewManager extends SimpleViewManager<LinearLayout> {
     @ReactProp(name = "url")
     public void setSource(LinearLayout linearLayout, @Nullable String url) {
         if (url != null) {
-            videoView.setVideoURI(Uri.parse(url));
+            HttpProxyCacheServer proxy = new MainApplication().getProxy(context);
+            String proxyUrl = proxy.getProxyUrl(url);
+
+            videoView.setVideoURI(Uri.parse(proxyUrl));
             videoView.start();
-            videoView.setOnPreparedListener(new MyOnPreparedListener());
-            videoView.setOnCompletionListener(new MyOnCompletionListener());
-            videoView.setOnErrorListener(new MyOnOnErrorListener());
-
-        }
-    }
-
-
-    //播放准备
-    class MyOnPreparedListener implements IMediaPlayer.OnPreparedListener {
-        @Override
-        public void onPrepared(IMediaPlayer iMediaPlayer) {
-
-        }
-    }
-
-    //播放完成
-    class MyOnCompletionListener implements IMediaPlayer.OnCompletionListener {
-        @Override
-        public void onCompletion(IMediaPlayer iMediaPlayer) {
-
-        }
-    }
-
-    //播放结束
-    class MyOnOnErrorListener implements IMediaPlayer.OnErrorListener {
-        @Override
-        public boolean onError(IMediaPlayer iMediaPlayer, int i, int i1) {
-            return false;
         }
     }
 }

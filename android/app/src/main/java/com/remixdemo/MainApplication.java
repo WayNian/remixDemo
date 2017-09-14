@@ -1,7 +1,9 @@
 package com.remixdemo;
 
 import android.app.Application;
+import android.content.Context;
 
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
@@ -12,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MainApplication extends Application implements ReactApplication {
+    private HttpProxyCacheServer proxy;
 
     private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
         @Override
@@ -23,8 +26,6 @@ public class MainApplication extends Application implements ReactApplication {
         protected List<ReactPackage> getPackages() {
             return Arrays.<ReactPackage>asList(
                     new MainReactPackage(),
-                    new MyReactPackager(),
-                    new AppReactPackage(),
                     new VideoViewPackage()
             );
         }
@@ -39,5 +40,16 @@ public class MainApplication extends Application implements ReactApplication {
     public void onCreate() {
         super.onCreate();
         SoLoader.init(this, /* native exopackage */ false);
+    }
+
+    public static HttpProxyCacheServer getProxy(Context context) {
+        MainApplication app = (MainApplication) context.getApplicationContext();
+        return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
+    }
+
+    private HttpProxyCacheServer newProxy() {
+        return new HttpProxyCacheServer.Builder(this)
+                .cacheDirectory(Utils.getVideoCacheDir(this))
+                .build();
     }
 }
